@@ -325,7 +325,7 @@ def render_game(bucket, model_name, data, filename="",
         try:
             # NOTE: evals are printed ~near~ the move they are for but plus or
             # minus one because of 2*m+1 below.
-            _, comments = sgf_utils.raw_game_data(data)
+            _, comments = sgf_utils.raw_game_data(filename, data)
             evals = [comment[2][0] for comment in comments]
             for m, (b_eval, w_eval) in enumerate(zip(evals[::2], evals[1::2])):
                 player_evals.append((2 * m + 1, b_eval, w_eval))
@@ -465,6 +465,18 @@ def figure_three(bucket):
                            fig3_data=figure_data,
                            figure_three_data=figure_three_data,
                            )
+
+@app.route('/<bucket>/openings.html')
+def joseki_openings(bucket):
+    directory = os.path.join(app.instance_path, 'joseki')
+    f = bucket[:3] + "openings.html"
+    if not os.path.exists(os.path.join(directory, f)):
+        return 'Josekis not calculated for this run'
+
+    # For details on how these were generated see
+    # https://github.com/tensorflow/minigo/pull/860
+
+    return send_from_directory(directory, f, cache_timeout=10*60)
 
 
 @app.route('/site-nav')
